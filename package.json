@@ -1,11 +1,8 @@
 {
   "name": "node-tracker",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Library to query both UDP and HTTP trackers",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "https://git.popcorntime.io/stash/scm/~xeoncore/node-tracker.git"
@@ -19,8 +16,16 @@
     "scrape",
     "bittorrent"
   ],
-  "author": "jduncanator",
-  "license": "GPL-3",
+  "author": { 
+    "name": "jduncanator",
+    "url": "https://github.com/jduncanator"
+  },
+  "contributors": {
+    "name": "XeonCore",
+    "email": "xeoncore@get-popcorn.com",
+    "url": "https://github.com/xeoncore"
+  },
+  "license": "GPL-3.0",
   "dependencies": {
     "URIjs": "^1.13.2",
     "bencode": "^0.6.0",
