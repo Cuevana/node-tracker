@@ -1,0 +1,32 @@
+{
+  "name": "node-tracker",
+  "version": "0.0.1",
+  "description": "Library to query both UDP and HTTP trackers",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git.popcorntime.io/stash/scm/~xeoncore/node-tracker.git"
+  },
+  "keywords": [
+    "torrent",
+    "swarm",
+    "tracker",
+    "udp",
+    "http",
+    "scrape",
+    "bittorrent"
+  ],
+  "author": "jduncanator",
+  "license": "GPL-3",
+  "dependencies": {
+    "URIjs": "^1.13.2",
+    "bencode": "^0.6.0",
+    "compact2string": "^1.2.0",
+    "hat": "0.0.3",
+    "request": "^2.39.0",
+    "underscore": "^1.6.0"
+  }
+}
