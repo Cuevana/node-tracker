@@ -1,10 +1,10 @@
-var _ = require('underscore')
-  , bencode = require('bencode')
-  , compact2string = require('compact2string')
-  , request = require('request')
-  , dgram = require('dgram')
-  , URI = require('URIjs')
-  , hat = require('hat');
+var _ = require('underscore'), 
+    bencode = require('bencode'),
+    compact2string = require('compact2string'),
+    request = require('request'),
+    dgram = require('dgram'),
+    URI = require('URIjs'),
+    hat = require('hat');
 
 URI.iso8859();
 
@@ -28,12 +28,13 @@ function Tracker(tracker) {
         this.socket.on('message', function(message, rinfo) {
             message = deserializeResponse(message);
 
+            if (message === null) return;
+
             // Clear the "retransmit" timer
             clearTimeout(self.transactionCache[message.transaction_id].timeout);
 
             switch(message.type) {
                 case 'connect': {
-                    console.log("Received new ConnectionID");
                     self.connectionId = message.connection_id;
                     break;
                 }
@@ -57,13 +58,13 @@ function Tracker(tracker) {
             }
 
             delete self.transactionCache[message.transaction_id];
-        })
+        });
 
         var transactId = Number(hat(32, 10));
         var requestData = {
             connection_id: this.connectionId,
             transaction_id: transactId
-        }
+        };
         this._saveTransaction(transactId, requestData, undefined);
         this.send(serializeConnectRequest(requestData), transactId);
 
@@ -73,10 +74,10 @@ function Tracker(tracker) {
             var requestData = {
                 connection_id: CONNECTION_ID,
                 transaction_id: transactId
-            }
+            };
             self._saveTransaction(transactId, requestData, undefined);
             self.send(serializeConnectRequest(requestData), transactId);
-        }, 60000)
+        }, 60000);
     }
 }
 
@@ -84,8 +85,8 @@ Tracker.prototype._saveTransaction = function(transactionId, requestData, callba
     this.transactionCache[transactionId] = {
         request: requestData,
         callback: callback
-    }
-}
+    };
+};
 
 Tracker.prototype.close = function() {
     if(this.udp) {
@@ -94,7 +95,7 @@ Tracker.prototype.close = function() {
             clearTimeout(transaction.timeout);
         });
     }
-}
+};
 
 Tracker.prototype.send = function(packet, transactionId) {
     var self = this;
@@ -106,14 +107,13 @@ Tracker.prototype.send = function(packet, transactionId) {
         return;
 
     this.transactionCache[transactionId].timeout = setTimeout(function() {
-        console.log("WARNING: In retransmit timeout callback!!!");
         self.send(packet, transactionId);
     }, 15000 * Math.pow(2, this.transactionCache[transactionId].timeoutCount));
 
     this.socket.send(packet, 0, packet.length, this.port, this.hostname);
     
     this.transactionCache[transactionId].timeoutCount++;
-}
+};
 
 Tracker.prototype.scrape = function(info_hashes, cb) {
     if(!info_hashes || !cb)
@@ -138,11 +138,14 @@ Tracker.prototype.scrape = function(info_hashes, cb) {
 
         var requestUri = this.trackerUri.clone();
         var qs = URI.buildQuery({ 
-            info_hash: _.map(info_hashes, function(hash) { return new Buffer(hash, 'hex').toString('binary') }) 
+            info_hash: _.map(info_hashes, function(hash) { return new Buffer(hash, 'hex').toString('binary'); }) 
         }, true, false);
         requestUri.filename('scrape' + (requestUri.suffix() ? ('.' + requestUri.suffix()) : ''));
         requestUri.query(qs);
+
         request(requestUri.toString(), {encoding: null}, function(err, res, body) {
+            if (err) return;
+
             var data = bencode.decode(body, 'binary');
             data.files = _.object(
                 _.map(data.files, function(val, key) { 
@@ -153,15 +156,15 @@ Tracker.prototype.scrape = function(info_hashes, cb) {
                             completed: val.downloaded,
                             leechers: val.incomplete
                         }
-                    ]
+                    ];
                 })
             );
 
             cb(err, data.files);
-        })
+        });
 
     }
-}
+};
 
 function serializeConnectRequest(opts) {
     var buffer = new Buffer(16);
@@ -238,7 +241,7 @@ function deserializeConnectResponse(packet) {
         type: 'connect',
         transaction_id: packet.readUInt32BE(4),
         connection_id: packet.slice(8, 16)
-    }
+    };
 }
 
 function deserializeAnnounceResponse(packet) {
@@ -249,7 +252,7 @@ function deserializeAnnounceResponse(packet) {
         leechers: packet.readUInt32BE(12),
         seeders: packet.readUInt32BE(16),
         peers: compact2string.multi(packet.slice(20))
-    }
+    };
 }
 
 function deserializeScrapeResponse(packet) {
@@ -266,7 +269,7 @@ function deserializeScrapeResponse(packet) {
         type: 'scrape',
         transaction_id: transaction_id,
         torrent_info: torrents
-    }
+    };
 }
 
 function deserializeErrorResponse(packet) {
@@ -274,7 +277,7 @@ function deserializeErrorResponse(packet) {
         type: 'error',
         transaction_id: packet.readUInt32BE(4),
         message: packet.toString('utf8', 8)
-    }
+    };
 }
 
 module.exports = Tracker;
