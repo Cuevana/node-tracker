@@ -28,10 +28,12 @@ function Tracker(tracker) {
         this.socket.on('message', function(message, rinfo) {
             message = deserializeResponse(message);
 
-            if (message === null) return;
+            if (message === null || self.transactionCache[message.transaction_id] === undefined) return;
 
             // Clear the "retransmit" timer
-            clearTimeout(self.transactionCache[message.transaction_id].timeout);
+            if (typeof self.transactionCache[message.transaction_id].timeout !== undefined) {
+                clearTimeout(self.transactionCache[message.transaction_id].timeout);
+            }
 
             switch(message.type) {
                 case 'connect': {
